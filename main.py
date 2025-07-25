@@ -1,5 +1,7 @@
 #iterable - an object/collection that can b iterated thru a loop
 import time
+from vosk import Model, KaldiRecognizer
+import pyaudio 
 #lists [], tuples (), sets {} are all iterable
 #strings are also iterable
 #dictionaries are iteranbe
@@ -28,16 +30,20 @@ import time
 #           class is a blueprint used to design the structure and layout of object
 
 
-import sys #system, gives access to vars used by python interpretor
-from PyQt5.QtWidgets import QApplication 
-from gui_windows.welcome_screen import WelcomeScreen  # adjust import path based on your folder structure
+model = Model(r"C:\Users\ayaan\OneDrive\Desktop\Assistive Project\vosk-model-small-en-us-0.15\vosk-model-small-en-us-0.15")
+recognizer = KaldiRecognizer(model, 16000)
 
-def main():
-    app = QApplication(sys.argv)
-    #remember if else statement for running welcome or main
-    window = WelcomeScreen()
-    #window.show()  # optional if you're already calling showMaximized() in the constructor
-    sys.exit(app.exec())
+mic = pyaudio.PyAudio()
+stream = mic.open(format=pyaudio.paInt16, channels = 1, rate=16000, input = True, frames_per_buffer = 8192)
 
-if __name__ == "__main__":
-    main()
+stream.start_stream()
+
+while True:
+    data = stream.read(4096)
+    if len(data) ==0:
+        break
+    if recognizer.AcceptWaveform(data):
+        text = recognizer.Result()
+        print(text)
+        print(text[14:-3])
+        
